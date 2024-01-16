@@ -11,6 +11,9 @@ require 'rails_helper'
 
 #justforinfo:- we want to update a bookmark, we would send a PATCH or PUT request to the /bookmarks/:id route
 describe 'PUT /bookmarks' do
+
+    # group scenarios with authenticated user into this context block
+    context 'authenticated user' do
   let!(:bookmark) { Bookmark.create(url: 'https://rubyyagi.com', title: 'Ruby Yagi') }
 
 
@@ -62,6 +65,26 @@ describe 'PUT /bookmarks' do
     # The bookmark title and url remain unchanged
     expect(bookmark.reload.title).to eq('Ruby Yagi')
     expect(bookmark.reload.url).to eq('https://rubyyagi.com')
+  end
+end
+
+    # scenario with unauthenticated user
+  context 'unauthenticated user' do
+    it 'should return forbidden error' do
+      post '/bookmarks', params: {
+        bookmark: {
+          url: 'https://rubyyagi.com',
+          title: 'RubyYagi blog'
+        }
+      }
+
+      # response should have HTTP Status 403 Forbidden
+      expect(response.status).to eq(403)
+
+      #response contains an error message
+      json = JSON.parse(response.body).deep_symbolize_keys
+      expect(json[:message]).to eq('Invalid User')
+    end
   end
 end
 
